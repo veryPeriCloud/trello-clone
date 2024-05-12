@@ -1,0 +1,53 @@
+{
+  "name": "task-board",
+  "columns": [
+    {
+      "id": "c4e24b47-09a4-4f05-a3d0-e5157e818ea0",
+      "name": "todo",
+      "tasks": [
+        {
+          "id": "6f2aa69b-dcbb-4209-aebd-7bc8bb5b0e9f",
+          "name": "task #1",
+          "description": ""
+        },
+        {
+          "id": "f9915027-eea8-4aab-a8df-f393653af39f",
+          "name": "task #2",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "f39332f4-4688-4a3e-adb1-6a7e832b7c98",
+      "name": "in-progress",
+      "tasks": [
+        {
+          "id": "cf7c5501-9436-47f4-bdae-f184b85e1485",
+          "name": "task #3",
+          "description": ""
+        },
+        {
+          "id": "7bd486e3-1da5-4921-9522-799bc7d0c905",
+          "name": " task #4",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "07902d2d-f801-4733-8515-1582e08077be",
+      "name": "complete",
+      "tasks": [
+        {
+          "id": "3f9b1502-e1ab-4bad-a1b8-b6a2611bd72a",
+          "name": "task #5",
+          "description": ""
+        },
+        {
+          "id": "dda23aa9-b011-40b7-abb7-713925b4c66b",
+          "name": "task #6",
+          "description": ""
+        }
+      ]
+    }
+  ]
+}
