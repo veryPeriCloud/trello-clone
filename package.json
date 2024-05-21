@@ -12,12 +12,15 @@
   "dependencies": {
     "@nuxt/ui": "^2.16.0",
     "@pinia/nuxt": "^0.5.1",
+    "firebase": "^10.11.1",
     "nuxt": "^3.11.2",
+    "nuxt-vuefire": "^1.0.2",
     "pinia": "^2.1.7",
     "sass": "^1.77.1",
     "uuid": "^9.0.1",
     "vue": "^3.4.27",
-    "vue-router": "^4.3.2"
+    "vue-router": "^4.3.2",
+    "vuefire": "^3.1.23"
   },
   "devDependencies": {
     "@vueuse/core": "^10.9.0",

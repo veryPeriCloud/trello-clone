@@ -1,17 +1,26 @@
 <script setup lang="ts">
 import { useBoardStore } from "~/stores/boardStore";
+import { collection, addDoc } from "firebase/firestore";
+import { useFirestore, useCollection } from "vuefire";
+
+const db = useFirestore();
+const { data: columns, pending} = useCollection(collection(db, 'columns'));
 
 const route = useRoute();
 const router = useRouter();
-const boardStore = useBoardStore();
+// const boardStore = useBoardStore();
 const newColumnName = ref("");
 
 const isModalOpen = computed(() => {
   return route.name === "index-tasks-id";
 });
 
-const addColumn = () => {
-  boardStore.addColumn(newColumnName.value);
+const addColumn = async () => {
+  await addDoc(collection(db, "columns"), {
+    name: newColumnName.value,
+    createdAt: new Date.toString,
+    tasks: [],
+  });
   newColumnName.value = "";
 };
 
@@ -22,9 +31,9 @@ const closeModal = () => {
 
 <template>
   <div class="board-wrapper">
-    <main class="board">
+    <main class="board" v-if="!pending">
       <BoardColumn
-        v-for="(column, columnIndex) in boardStore.board.columns"
+        v-for="(column, columnIndex) in columns"
         :key="column.id"
         :column="column"
         :columnIndex="columnIndex"
