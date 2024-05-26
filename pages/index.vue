@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { addDoc } from "firebase/firestore";
+import { v4 as uuid } from "uuid";
 
 const { $columnsRef } = useNuxtApp();
 const route = useRoute();
@@ -12,8 +13,9 @@ const isModalOpen = computed(() => {
 
 const { data: columns, pending} = useCollection($columnsRef);
 
-const addColumn = async () => {
+const addColumn = async (): Promise<void> => {
   await addDoc($columnsRef, {
+    id: uuid(),
     name: newColumnName.value,
     tasks: [],
   });

@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { useBoardStore } from "~/stores/boardStore";
 import VDotsDropdown from "./VDotsDropdown.vue";
 import { colors } from "~/assets/ts/colors";
+import type { ITask } from "~/data/board.types";
 
 const props = defineProps({
   column: {
@@ -14,13 +16,14 @@ const props = defineProps({
   },
 });
 
+const { $db } = useNuxtApp();
 const router = useRouter();
 const boardStore = useBoardStore();
 const editNameState = ref(false);
 const newTaskName = ref("");
 
-const deleteColumn = (columnIndex: number): void => {
-  boardStore.deleteColumn(columnIndex);
+const deleteColumn = async (id: number): Promise<void> => {
+  await deleteDoc(doc($db, "columns", id));
 };
 
 const gotToTask = (taskId: string): void => {
@@ -104,12 +107,35 @@ const pickupColumn = (event: DragEvent, fromColumnIndex: number): void => {
 const getRandomColor = computed(() => {
   return colors[Math.floor(Math.random() * colors.length)];
 });
+
+interface IColumn {
+  id: string;
+  name: string;
+  tasks: ITask;
+}
+const editColumnName = async (column: IColumn): Promise<void> => {
+  const columnRef = doc($db, "columns", column.id);
+  await updateDoc(columnRef, {
+    name: column.name,
+  })
+  .then(() => {
+      editNameState.value = false;
+      toast.add({
+        title: "Column name updated.",
+        description: `${column.name} has been deleted.`,
+        icon: "i-heroicons-check",
+        timeout: 3000,
+        color: "green",
+      });
+    })
+    .catch((error) => {});
+};
 </script>
 
 <template>
   <UContainer
     class="column border-t-[4px]"
-    :style="{'border-color': `${getRandomColor}`}"
+    :style="{ 'border-color': `${getRandomColor}` }"
     draggable="true"
     @dragstart.self="pickupColumn($event, columnIndex)"
     @dragenter.prevent
@@ -123,7 +149,7 @@ const getRandomColor = computed(() => {
           type="text"
           size="lg"
           v-model="column.name"
-          @blur="editNameState = false"
+          @blur="editColumnName(column)"
         />
         <h2 v-else>{{ column.name }}</h2>
       </div>
@@ -139,7 +165,7 @@ const getRandomColor = computed(() => {
             icon="i-heroicons-trash"
             class="mr-2 text-red-500"
             color="red"
-            @click="deleteColumn(columnIndex)"
+            @click="deleteColumn(column.id)"
             >Delete</UButton
           >
         </div>
