@@ -1,17 +1,22 @@
 <script setup lang="ts">
-import { useBoardStore } from "~/stores/boardStore";
+import { addDoc } from "firebase/firestore";
 
+const { $columnsRef } = useNuxtApp();
 const route = useRoute();
 const router = useRouter();
-const boardStore = useBoardStore();
 const newColumnName = ref("");
 
 const isModalOpen = computed(() => {
   return route.name === "index-tasks-id";
 });
 
-const addColumn = () => {
-  boardStore.addColumn(newColumnName.value);
+const { data: columns, pending} = useCollection($columnsRef);
+
+const addColumn = async () => {
+  await addDoc($columnsRef, {
+    name: newColumnName.value,
+    tasks: [],
+  });
   newColumnName.value = "";
 };
 
@@ -22,9 +27,9 @@ const closeModal = () => {
 
 <template>
   <div class="board-wrapper">
-    <main class="board">
+    <main class="board" v-if="!pending">
       <BoardColumn
-        v-for="(column, columnIndex) in boardStore.board.columns"
+        v-for="(column, columnIndex) in columns"
         :key="column.id"
         :column="column"
         :columnIndex="columnIndex"
