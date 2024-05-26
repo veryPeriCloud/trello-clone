@@ -19,7 +19,7 @@ interface IMovaTaskFnArgs extends IMoveColumnFnArgs {
   toTaskIndex: number;
 }
 
-export const useBoardStore2 = defineStore("boardStore2", () => {
+export const useBoardStore = defineStore("boardStore", () => {
   const board = useStorage<IData>("board", boardData);
 
   const getTask = computed(() => {

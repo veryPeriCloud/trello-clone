@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { useBoardStore } from "~/stores/boardStore";
 import type { ITask } from "~/data/board.types";
 import { collection, doc } from "firebase/firestore";
 import { useFirestore, useCollection } from "vuefire";
 
-// const db = useFirestore();
+const { db } = useNuxtApp();
 
-// const boardStore = useBoardStore();
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
@@ -40,7 +38,6 @@ const deleteTask = async () => {
 <template>
   <div class="task-wrapper">
     <div v-if="task" class="task-view">
-      <pre>{{ task }}</pre>
       <UFormGroup label="Name" class="w-full mb-4">
         <UInput
           type="text"

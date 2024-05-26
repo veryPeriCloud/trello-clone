@@ -1,8 +1,12 @@
 <template>
-  <div class="bg-sky-400">
+  <NuxtLayout>
     <NuxtPage />
-  </div>
+  </NuxtLayout>
   <UNotifications />
 </template>
+
+<script setup lang="ts">
+
+</script>
 
 <style></style>

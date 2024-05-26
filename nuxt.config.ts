@@ -3,11 +3,14 @@ export default defineNuxtConfig({
   ssr: false,
   css: ['~/assets/css/style.css'],
   devtools: { enabled: false },
-  modules: ['@pinia/nuxt', "@nuxt/ui", '@vueuse/nuxt', "nuxt-vuefire"],
+  modules: ["@pinia/nuxt", "@nuxt/ui", "@vueuse/nuxt", "nuxt-vuefire"],
   colorMode: {
     preference: "light"
   },
   vuefire: {
+    auth: {
+      enabled: true
+    },
     config: {
       apiKey: process.env.FIREBASE_API_KEY,
       authDomain: process.env.FIREBASE_AUTH_DOMAIN,

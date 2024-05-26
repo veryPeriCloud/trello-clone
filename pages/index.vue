@@ -1,24 +1,20 @@
 <script setup lang="ts">
-import { useBoardStore } from "~/stores/boardStore";
-import { collection, addDoc } from "firebase/firestore";
-import { useFirestore, useCollection } from "vuefire";
+import { addDoc } from "firebase/firestore";
 
-const db = useFirestore();
-const { data: columns, pending} = useCollection(collection(db, 'columns'));
-
+const { $columnsRef } = useNuxtApp();
 const route = useRoute();
 const router = useRouter();
-// const boardStore = useBoardStore();
 const newColumnName = ref("");
 
 const isModalOpen = computed(() => {
   return route.name === "index-tasks-id";
 });
 
+const { data: columns, pending} = useCollection($columnsRef);
+
 const addColumn = async () => {
-  await addDoc(collection(db, "columns"), {
+  await addDoc($columnsRef, {
     name: newColumnName.value,
-    createdAt: new Date.toString,
     tasks: [],
   });
   newColumnName.value = "";
