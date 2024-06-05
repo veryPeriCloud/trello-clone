@@ -1,52 +1,40 @@
 <script setup lang="ts">
-import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { useBoardStore } from "~/stores/boardStore";
 import VDotsDropdown from "./VDotsDropdown.vue";
 import { colors } from "~/assets/ts/colors";
-import type { ITask } from "~/data/board.types";
+import type { IColumn, IDropFnArgs, IPickupArgs } from "~/types/board";
 
-const props = defineProps({
-  column: {
-    type: Object,
-    required: true,
-  },
-  columnIndex: {
-    type: Number,
-    required: true,
-  },
-});
+const props = defineProps<{
+  column: IColumn;
+  columnIndex: number | string;
+}>();
 
-const { $db } = useNuxtApp();
-const router = useRouter();
 const boardStore = useBoardStore();
+
 const editNameState = ref(false);
 const newTaskName = ref("");
 
-const deleteColumn = async (id: number): Promise<void> => {
-  await deleteDoc(doc($db, "columns", id));
+const editColumnName = async(): Promise<void> => {
+  await boardStore.editColumn(props.column.id);
+  editNameState.value = false;
 };
 
-const gotToTask = (taskId: string): void => {
-  router.push(`/tasks/${taskId}`);
+const deleteColumn = async(column: IColumn): Promise<void> => {
+  await boardStore.deleteColumn(column);
 };
 
-const addTask = (): void => {
-  boardStore.addTask({
+const goToTask = (taskId: string): void => {
+  navigateTo(`/tasks/${taskId}`)
+};
+
+const addTask = async(): Promise<void> => {
+  await boardStore.addTask({
     taskName: newTaskName.value,
     columnIndex: props.columnIndex,
+    columnId: props.column.id
   });
   newTaskName.value = "";
 };
-
-interface IPickupArgs {
-  fromColumnIndex: number;
-  fromTaskIndex: number;
-}
-
-interface IDropFnArgs {
-  toColumnIndex: number;
-  toTaskIndex?: undefined | number;
-}
 
 const pickupTask = (
   event: DragEvent,
@@ -64,10 +52,10 @@ const pickupTask = (
   }
 };
 
-const dropItem = (
+const dropItem = async (
   event: DragEvent,
   { toColumnIndex, toTaskIndex }: IDropFnArgs
-): void => {
+): Promise<void> => {
   const type = event.dataTransfer?.getData("type");
   const fromColumnIndex = Number(
     event.dataTransfer?.getData("from-column-index")
@@ -83,11 +71,13 @@ const dropItem = (
       toTaskIndex,
       fromColumnIndex,
       toColumnIndex,
+      columnId: props.column.id
     });
   } else if (type === "column") {
-    boardStore.moveColumn({
+    await boardStore.moveColumn({
       fromColumnIndex,
       toColumnIndex,
+      columnId: props.column.id
     });
   }
 };
@@ -107,29 +97,6 @@ const pickupColumn = (event: DragEvent, fromColumnIndex: number): void => {
 const getRandomColor = computed(() => {
   return colors[Math.floor(Math.random() * colors.length)];
 });
-
-interface IColumn {
-  id: string;
-  name: string;
-  tasks: ITask;
-}
-const editColumnName = async (column: IColumn): Promise<void> => {
-  const columnRef = doc($db, "columns", column.id);
-  await updateDoc(columnRef, {
-    name: column.name,
-  })
-  .then(() => {
-      editNameState.value = false;
-      toast.add({
-        title: "Column name updated.",
-        description: `${column.name} has been deleted.`,
-        icon: "i-heroicons-check",
-        timeout: 3000,
-        color: "green",
-      });
-    })
-    .catch((error) => {});
-};
 </script>
 
 <template>
@@ -149,7 +116,8 @@ const editColumnName = async (column: IColumn): Promise<void> => {
           type="text"
           size="lg"
           v-model="column.name"
-          @blur="editColumnName(column)"
+          @blur="editColumnName"
+          @keyup.enter="editColumnName"
         />
         <h2 v-else>{{ column.name }}</h2>
       </div>
@@ -165,7 +133,7 @@ const editColumnName = async (column: IColumn): Promise<void> => {
             icon="i-heroicons-trash"
             class="mr-2 text-red-500"
             color="red"
-            @click="deleteColumn(column.id)"
+            @click="deleteColumn(column)"
             >Delete</UButton
           >
         </div>
@@ -175,7 +143,7 @@ const editColumnName = async (column: IColumn): Promise<void> => {
       <li v-for="(task, taskIndex) in column.tasks" :key="task.id">
         <UCard
           class="mb-4 cursor-pointer hover:shadow-lg"
-          @click="gotToTask(task.id)"
+          @click="goToTask(task.id)"
           draggable="true"
           @dragstart="
             pickupTask($event, {

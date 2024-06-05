@@ -10,7 +10,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     provide: {
       auth,
       db,
-      columnsRef,
+      columnsRef
     },
   };
 });

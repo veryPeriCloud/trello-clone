@@ -1,8 +1,10 @@
 <script setup lang="ts">
-const { $auth } = useNuxtApp();
 import { signOut } from "firebase/auth";
 
+const { $auth } = useNuxtApp();
+
 const user = $auth.currentUser;
+const toast = useToast();
 
 const items = [
   [
