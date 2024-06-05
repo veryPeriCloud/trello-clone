@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { addDoc } from "firebase/firestore";
+import { useBoardStore } from "~/stores/boardStore.ts";
 
-const { $columnsRef } = useNuxtApp();
+const boardStore = useBoardStore();
+const isResolved = ref(false);
+
 const route = useRoute();
 const router = useRouter();
 const newColumnName = ref("");
@@ -10,31 +12,32 @@ const isModalOpen = computed(() => {
   return route.name === "index-tasks-id";
 });
 
-const { data: columns, pending} = useCollection($columnsRef);
+onMounted(async() => {
+  await boardStore.setBoardData();
+  isResolved.value = true;
+});
 
-const addColumn = async () => {
-  await addDoc($columnsRef, {
-    name: newColumnName.value,
-    tasks: [],
-  });
+const addColumn = async(): Promise<void> => {
+  if (newColumnName.value.length === 0) return;
+  await boardStore.addColumn(newColumnName.value);
+  isResolved.value = true;
   newColumnName.value = "";
 };
 
-const closeModal = () => {
+const closeModal = async() => {
   router.push("/");
 };
 </script>
 
 <template>
   <div class="board-wrapper">
-    <main class="board" v-if="!pending">
+    <main class="board" v-if="isResolved">
       <BoardColumn
-        v-for="(column, columnIndex) in columns"
+        v-for="(column, columnIndex) in boardStore.board"
         :key="column.id"
         :column="column"
         :columnIndex="columnIndex"
       />
-
       <UContainer class="column">
         <UInput
           v-model="newColumnName"

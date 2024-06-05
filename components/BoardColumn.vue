@@ -2,48 +2,39 @@
 import { useBoardStore } from "~/stores/boardStore";
 import VDotsDropdown from "./VDotsDropdown.vue";
 import { colors } from "~/assets/ts/colors";
+import type { IColumn, IDropFnArgs, IPickupArgs } from "~/types/board";
 
-const props = defineProps({
-  column: {
-    type: Object,
-    required: true,
-  },
-  columnIndex: {
-    type: Number,
-    required: true,
-  },
-});
+const props = defineProps<{
+  column: IColumn;
+  columnIndex: number;
+}>();
 
-const router = useRouter();
 const boardStore = useBoardStore();
+
 const editNameState = ref(false);
 const newTaskName = ref("");
 
-const deleteColumn = (columnIndex: number): void => {
-  boardStore.deleteColumn(columnIndex);
+const editColumnName = async(): Promise<void> => {
+  await boardStore.editColumn(props.column.id);
+  editNameState.value = false;
 };
 
-const gotToTask = (taskId: string): void => {
-  router.push(`/tasks/${taskId}`);
+const deleteColumn = async(column: IColumn): Promise<void> => {
+  await boardStore.deleteColumn(column);
 };
 
-const addTask = (): void => {
-  boardStore.addTask({
+const goToTask = (taskId: string): void => {
+  navigateTo(`/tasks/${taskId}`)
+};
+
+const addTask = async(): Promise<void> => {
+  await boardStore.addTask({
     taskName: newTaskName.value,
     columnIndex: props.columnIndex,
+    columnId: props.column.id
   });
   newTaskName.value = "";
 };
-
-interface IPickupArgs {
-  fromColumnIndex: number;
-  fromTaskIndex: number;
-}
-
-interface IDropFnArgs {
-  toColumnIndex: number;
-  toTaskIndex?: undefined | number;
-}
 
 const pickupTask = (
   event: DragEvent,
@@ -61,10 +52,10 @@ const pickupTask = (
   }
 };
 
-const dropItem = (
+const dropItem = async (
   event: DragEvent,
   { toColumnIndex, toTaskIndex }: IDropFnArgs
-): void => {
+): Promise<void> => {
   const type = event.dataTransfer?.getData("type");
   const fromColumnIndex = Number(
     event.dataTransfer?.getData("from-column-index")
@@ -79,12 +70,12 @@ const dropItem = (
       fromTaskIndex,
       toTaskIndex,
       fromColumnIndex,
-      toColumnIndex,
+      toColumnIndex
     });
   } else if (type === "column") {
-    boardStore.moveColumn({
+    await boardStore.moveColumn({
       fromColumnIndex,
-      toColumnIndex,
+      toColumnIndex
     });
   }
 };
@@ -109,7 +100,7 @@ const getRandomColor = computed(() => {
 <template>
   <UContainer
     class="column border-t-[4px]"
-    :style="{'border-color': `${getRandomColor}`}"
+    :style="{ 'border-color': `${getRandomColor}` }"
     draggable="true"
     @dragstart.self="pickupColumn($event, columnIndex)"
     @dragenter.prevent
@@ -123,7 +114,8 @@ const getRandomColor = computed(() => {
           type="text"
           size="lg"
           v-model="column.name"
-          @blur="editNameState = false"
+          @blur="editColumnName"
+          @keyup.enter="editColumnName"
         />
         <h2 v-else>{{ column.name }}</h2>
       </div>
@@ -139,7 +131,7 @@ const getRandomColor = computed(() => {
             icon="i-heroicons-trash"
             class="mr-2 text-red-500"
             color="red"
-            @click="deleteColumn(columnIndex)"
+            @click="deleteColumn(column)"
             >Delete</UButton
           >
         </div>
@@ -149,7 +141,7 @@ const getRandomColor = computed(() => {
       <li v-for="(task, taskIndex) in column.tasks" :key="task.id">
         <UCard
           class="mb-4 cursor-pointer hover:shadow-lg"
-          @click="gotToTask(task.id)"
+          @click="goToTask(task.id)"
           draggable="true"
           @dragstart="
             pickupTask($event, {

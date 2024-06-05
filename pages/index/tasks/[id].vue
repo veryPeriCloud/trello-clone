@@ -1,32 +1,33 @@
 <script setup lang="ts">
-import type { ITask } from "~/data/board.types";
-import { collection, doc } from "firebase/firestore";
-import { useFirestore, useCollection } from "vuefire";
+import type { ITask } from '~/types/board';
 
-const { db } = useNuxtApp();
 
+const boardStore = useBoardStore();
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
 
+const board = computed(() => boardStore.board);
 const taskId = computed<string>(() => {
   return route.params.id;
 });
 
-const columns = useCollection(collection(db, "columns"));
-
 const task = computed(() => {
-  for (const column of columns.value) {
+  for (const column of board.value) {
     const task = column.tasks.find((task) => task.id === taskId.value);
     if (task) return task;
   }
 });
 
-const deleteTask = async () => {
-  // boardStore.deleteTask(taskId.value);
+const editTask = async(task: ITask): Promise<void>  =>{
+  await boardStore.editTask(task);
+}
+
+const deleteTask = async(): Promise<void> => {
+  await boardStore.deleteTask(taskId.value);
   toast.add({
     title: "Task deleted.",
-    description: `${task.value.name} has been deleted.`,
+    description: `Task has been deleted.`,
     icon: "i-heroicons-trash",
     timeout: 3000,
     color: "red",
@@ -44,10 +45,11 @@ const deleteTask = async () => {
           size="lg"
           v-model="task.name"
           class="w-full font-bold"
+          @update:modelValue="editTask"
         />
       </UFormGroup>
       <UFormGroup label="Description" class="w-full mb-4">
-        <UTextarea v-model="task.description" class="w-full" />
+        <UTextarea v-model="task.description" @update:modelValue="editTask(task)" class="w-full" />
       </UFormGroup>
       <UButton icon="i-heroicons-trash" color="red" @click="deleteTask"
         >Delete task</UButton

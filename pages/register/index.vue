@@ -18,7 +18,7 @@ definePageMeta({
 });
 
 onMounted(() => {
-  const user = useCurrentUser();
+  const user = $auth.currentUser;
   if (user) {
     navigateTo("/", { replace: true });
   }

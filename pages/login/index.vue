@@ -21,6 +21,7 @@ const formData = reactive({
 
 onMounted(() => {
   const user = useCurrentUser();
+  
   if (user) {
     navigateTo("/", { replace: true });
   }

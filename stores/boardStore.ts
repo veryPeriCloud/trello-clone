@@ -1,93 +1,166 @@
 import { v4 as uuid } from "uuid";
 import { defineStore } from "pinia";
-import { useStorage } from "@vueuse/core";
-import boardData from "~/data/board.json";
-import type { IData } from "~/data/board.types";
-
-interface IAddTaskArg {
-  columnIndex: number;
-  taskName: string;
-}
-
-interface IMoveColumnFnArgs {
-  fromColumnIndex: number;
-  toColumnIndex: number;
-}
-
-interface IMovaTaskFnArgs extends IMoveColumnFnArgs {
-  fromTaskIndex: number;
-  toTaskIndex: number;
-}
+import {
+  arrayRemove,
+  arrayUnion,
+  doc,
+  getDoc,
+  updateDoc,
+} from "firebase/firestore";
+import type { IAddTaskArg, IColumn, IMoveTaskFnArgs, IMoveColumnFnArgs, ITask } from "~/types/board";
 
 export const useBoardStore = defineStore("boardStore", () => {
-  const board = useStorage<IData>("board", boardData);
+  const { $db } = useNuxtApp();
+  const columnsDataRef = doc($db, "columns", "data");
+  const board = ref<IColumn[]>([]);
+  const userId = localStorage.getItem("firebaseUser");
+
+  async function getAllBoardData(): Promise<IColumn[]> {
+    return await getDoc(columnsDataRef).then((doc) => {
+      return doc.data()?.data;
+    });
+  }
+
+  async function getBoardData(): Promise<IColumn[]> {
+    return await getDoc(columnsDataRef).then((doc) => {
+      return doc.data()?.data.filter((item: IColumn) => item.userId === userId);
+    });
+  }
+
+  async function setBoardData(): Promise<void> {
+    board.value = await getBoardData();
+  }
+
+  async function updateColumn(updatedData: IColumn[]): Promise<void> {
+    const boardFromDataBase = await getAllBoardData();
+    const boardNotUser = boardFromDataBase.filter((item) => item.userId !== userId)
+    await updateDoc(columnsDataRef, {
+      data: [...boardNotUser, ...updatedData],
+    });
+    await setBoardData();
+  }
+
+  async function addColumn(newColumnName: string): Promise<void> {
+    await updateDoc(columnsDataRef, {
+      data: arrayUnion({
+        id: uuid(),
+        name: newColumnName,
+        tasks: [],
+        createdAt: new Date().toISOString(),
+        userId,
+      }),
+    });
+    await setBoardData();
+  }
+
+  async function deleteColumn(column: IColumn): Promise<void> {
+    await updateDoc(columnsDataRef, {
+      data: arrayRemove(column),
+    });
+    await setBoardData();
+  }
+
+  async function editColumn(id?: string): Promise<void> {
+    const boardFromDataBase = await getAllBoardData();
+    const editedColumn = board.value.find(item => {
+      if (item.id === id) return item
+    })
+
+    const data = boardFromDataBase.map(item => {
+      if (item.id === id) {
+        item = {...editedColumn}
+      }
+      return item
+    })
+
+    await updateDoc(columnsDataRef, {
+      data: data,
+    });
+    await setBoardData();
+  }
+
+  async function moveColumn({
+    fromColumnIndex,
+    toColumnIndex
+  }: IMoveColumnFnArgs): Promise<void> {
+    const column = board.value.splice(fromColumnIndex, 1)[0];
+    board.value.splice(toColumnIndex, 0, column);
+
+    await updateColumn(board.value)
+  }
 
   const getTask = computed(() => {
     return (taskId: string) => {
-      for (const column of board.value.columns) {
+      for (const column of board.value) {
         const task = column.tasks.find((task) => task.id === taskId);
         if (task) return task;
       }
     };
   });
 
-  function addTask({ columnIndex, taskName }: IAddTaskArg): void {
-    board.value.columns[columnIndex].tasks.push({
+  async function addTask({
+    columnIndex,
+    taskName,
+    columnId
+  }: IAddTaskArg): Promise<void> {
+    board.value[columnIndex].tasks.push({
       id: uuid(),
       name: taskName,
       description: "",
     });
+    await editColumn(columnId);
   }
 
-  function deleteTask(taskId: string): void {
-    board.value.columns.forEach((column) => {
+  async function editTask(task: ITask): Promise<void> {
+    let columnId;
+    board.value.forEach((column) => {
+      column.tasks.map((t) => {
+        if (t.id === task.id) {
+          columnId = column.id;
+          task = { ...task };
+        }
+      });
+    });
+    await editColumn(columnId);
+  }
+
+  async function deleteTask(taskId: string): Promise<void> {
+    let columnId;
+    board.value.forEach((column) => {
       const taskIndex = column.tasks.findIndex((task) => task.id === taskId);
 
       if (taskIndex !== -1) {
+        columnId = column.id;
         column.tasks.splice(taskIndex, 1);
         return;
       }
     });
+    await editColumn(columnId);
   }
 
-  function moveTask({
+  async function moveTask({
     fromTaskIndex,
     toTaskIndex,
     fromColumnIndex,
     toColumnIndex,
-  }: IMovaTaskFnArgs) {
-    const task = board.value.columns[fromColumnIndex].tasks.splice(fromTaskIndex, 1)[0];
-    board.value.columns[toColumnIndex].tasks.splice(toTaskIndex, 0, task);
-  }
+  }: IMoveTaskFnArgs) {
 
-  function addColumn(columnName: string): void {
-    board.value.columns.push({
-      name: columnName,
-      tasks: [],
-      id: uuid(),
-    });
-  }
+    const task = board.value[fromColumnIndex].tasks.splice(fromTaskIndex, 1)[0];
+    board.value[toColumnIndex].tasks.splice(toTaskIndex, 0, task);
 
-  function deleteColumn(columnIndex: number): void {
-    board.value.columns.splice(columnIndex, 1);
-  }
-
-  function moveColumn({
-    fromColumnIndex,
-    toColumnIndex,
-  }: IMoveColumnFnArgs): void {
-    const column = board.value.columns.splice(fromColumnIndex, 1)[0];
-    board.value.columns.splice(toColumnIndex, 0, column);
+    await updateColumn(board.value)
   }
 
   return {
     board,
-    getTask,
-    addTask,
-    deleteTask,
-    moveTask,
+    setBoardData,
     addColumn,
     deleteColumn,
+    editColumn,
+    addTask,
+    deleteTask,
+    editTask,
+    moveTask,
     moveColumn,
   };
 });
