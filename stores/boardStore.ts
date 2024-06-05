@@ -16,14 +16,12 @@ export const useBoardStore = defineStore("boardStore", () => {
   const userId = localStorage.getItem("firebaseUser");
 
   async function getAllBoardData(): Promise<IColumn[]> {
-    const userId = localStorage.getItem("firebaseUser");
     return await getDoc(columnsDataRef).then((doc) => {
       return doc.data()?.data;
     });
   }
 
   async function getBoardData(): Promise<IColumn[]> {
-    const userId = localStorage.getItem("firebaseUser");
     return await getDoc(columnsDataRef).then((doc) => {
       return doc.data()?.data.filter((item: IColumn) => item.userId === userId);
     });
@@ -33,9 +31,16 @@ export const useBoardStore = defineStore("boardStore", () => {
     board.value = await getBoardData();
   }
 
-  async function addColumn(newColumnName: string): Promise<void> {
-    const userId = localStorage.getItem("firebaseUser");
+  async function updateColumn(updatedData: IColumn[]): Promise<void> {
+    const boardFromDataBase = await getAllBoardData();
+    const boardNotUser = boardFromDataBase.filter((item) => item.userId !== userId)
+    await updateDoc(columnsDataRef, {
+      data: [...boardNotUser, ...updatedData],
+    });
+    await setBoardData();
+  }
 
+  async function addColumn(newColumnName: string): Promise<void> {
     await updateDoc(columnsDataRef, {
       data: arrayUnion({
         id: uuid(),
@@ -76,21 +81,12 @@ export const useBoardStore = defineStore("boardStore", () => {
 
   async function moveColumn({
     fromColumnIndex,
-    toColumnIndex,
-    columnId
+    toColumnIndex
   }: IMoveColumnFnArgs): Promise<void> {
-    // 1
-    const boardFromDataBase = await getAllBoardData();
-    // 2
     const column = board.value.splice(fromColumnIndex, 1)[0];
     board.value.splice(toColumnIndex, 0, column);
 
-    const boardNotUser = boardFromDataBase.filter((item) => item.userId !== userId)
-
-    await updateDoc(columnsDataRef, {
-      data: [...boardNotUser, ...board.value],
-    });
-    await setBoardData();
+    await updateColumn(board.value)
   }
 
   const getTask = computed(() => {
@@ -147,21 +143,12 @@ export const useBoardStore = defineStore("boardStore", () => {
     toTaskIndex,
     fromColumnIndex,
     toColumnIndex,
-    columnId
   }: IMoveTaskFnArgs) {
-
-    const boardFromDataBase = await getAllBoardData();
 
     const task = board.value[fromColumnIndex].tasks.splice(fromTaskIndex, 1)[0];
     board.value[toColumnIndex].tasks.splice(toTaskIndex, 0, task);
-    // @todo
-    // await editColumn(columnId);
-    const boardNotUser = boardFromDataBase.filter((item) => item.userId !== userId)
 
-    await updateDoc(columnsDataRef, {
-      data: [...boardNotUser, ...board.value],
-    });
-    await setBoardData();
+    await updateColumn(board.value)
   }
 
   return {

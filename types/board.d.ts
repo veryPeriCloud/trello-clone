@@ -33,11 +33,9 @@ interface IAddTaskArg {
 interface IMoveColumnFnArgs {
   fromColumnIndex: number;
   toColumnIndex: number;
-  columnId: string;
 }
 
 interface IMoveTaskFnArgs extends IMoveColumnFnArgs {
   fromTaskIndex: number;
   toTaskIndex: number;
-  columnId: string;
 }

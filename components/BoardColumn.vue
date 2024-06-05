@@ -6,7 +6,7 @@ import type { IColumn, IDropFnArgs, IPickupArgs } from "~/types/board";
 
 const props = defineProps<{
   column: IColumn;
-  columnIndex: number | string;
+  columnIndex: number;
 }>();
 
 const boardStore = useBoardStore();
@@ -70,14 +70,12 @@ const dropItem = async (
       fromTaskIndex,
       toTaskIndex,
       fromColumnIndex,
-      toColumnIndex,
-      columnId: props.column.id
+      toColumnIndex
     });
   } else if (type === "column") {
     await boardStore.moveColumn({
       fromColumnIndex,
-      toColumnIndex,
-      columnId: props.column.id
+      toColumnIndex
     });
   }
 };
