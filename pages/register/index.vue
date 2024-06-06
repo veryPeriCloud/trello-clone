@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { z } from "zod";
 import type { FormSubmitEvent } from "#ui/types";
-import { doc, setDoc } from "firebase/firestore";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import type { UserCredential } from "firebase/auth";
+import { useUserStore } from "~/stores/userStore";
 
-const { $auth, $db } = useNuxtApp();
+const userStore = useUserStore();
 const toast = useToast();
 const formData = reactive({
   email: "",
@@ -18,7 +16,7 @@ definePageMeta({
 });
 
 onMounted(() => {
-  const user = $auth.currentUser;
+  const user = useCurrentUser();
   if (user) {
     navigateTo("/", { replace: true });
   }
@@ -32,33 +30,31 @@ const schema = z.object({
 type Schema = z.output<typeof schema>;
 
 async function onSubmit(event: FormSubmitEvent<Schema>): Promise<void> {
-  try {
-    const user: UserCredential = await createUserWithEmailAndPassword(
-      $auth,
-      formData.email,
-      formData.password
-    );
-    await setDoc(doc($db, "users", user.user?.uid), formData);
-    toast.add({
-      title: "Sign up",
-      description: "The account was created",
-      icon: "i-heroicons-check",
-      timeout: 2000,
-      color: "green",
+  await userStore
+    .register(formData)
+    .then((user) => {
+      if (user) {
+        toast.add({
+          title: "Sign up",
+          description: "The account was created",
+          icon: "i-heroicons-check",
+          timeout: 2000,
+          color: "green",
+        });
+        navigateTo("/", { replace: true });
+      }
+    })
+    .catch((error) => {
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      toast.add({
+        title: errorCode,
+        description: errorMessage,
+        icon: "i-heroicons-exclamation-circle",
+        timeout: 3000,
+        color: "red",
+      });
     });
-
-    if (user) navigateTo("/", { replace: true });
-  } catch (error) {
-    const errorCode = error.code;
-    const errorMessage = error.message;
-    toast.add({
-      title: errorCode,
-      description: errorMessage,
-      icon: "i-heroicons-exclamation-circle",
-      timeout: 3000,
-      color: "red",
-    });
-  }
 }
 </script>
 

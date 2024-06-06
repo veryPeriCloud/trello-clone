@@ -1,15 +1,21 @@
 <script setup lang="ts">
-import { signOut } from "firebase/auth";
+import { useUserStore } from "~/stores/userStore";
 
-const { $auth } = useNuxtApp();
-
-const user = $auth.currentUser;
+const userStore = useUserStore();
 const toast = useToast();
+
+const user = ref<IUser | null>(null);
+const isResolved = ref(false);
+
+onMounted(async () => {
+  user.value = await userStore.getProfile();
+  isResolved.value = true;
+});
 
 const items = [
   [
     {
-      label: user?.email,
+      label: "",
       slot: "account",
       disabled: true,
     },
@@ -30,11 +36,17 @@ const items = [
   ],
 ];
 
-const clickHandler = (url: string): void => {
+const alt = computed(() =>
+  user.value?.displayName
+    ? user.value?.displayName[0].toUpperCase()
+    : user.value?.email[0].toUpperCase()
+);
+
+const clickHandler = async (url: string): Promise<void> => {
   if (url === "/login") {
-    signOut($auth)
+    await userStore
+      .logOut()
       .then(() => {
-        console.log("sign out");
         toast.add({
           title: "Sign out",
           icon: "i-heroicons-check",
@@ -58,22 +70,35 @@ const clickHandler = (url: string): void => {
 </script>
 
 <template>
-  <header class="h-16 flex items-center py-3 px-3 bg-white shadow-lg">
-    <nuxt-link to="/" class="font-bold">Trello clone </nuxt-link>
+  <header class="h-16 flex items-center py-3 px-3 shadow-lg bg-white">
+    <nuxt-link
+      to="/"
+      class="font-bold hover:text-primary transition-all duration-200 ease-in"
+    >
+      Trello clone app
+    </nuxt-link>
 
     <UDropdown
       :items="items"
-      :ui="{ item: { disabled: 'cursor-text select-text' } }"
+      :ui="{
+        rounded: 'rounded-2xl',
+        item: { disabled: 'cursor-text select-text' },
+      }"
       :popper="{ placement: 'bottom-start' }"
       class="ml-auto"
     >
-      <UAvatar size="md" icon="i-heroicons-user-circle" />
+      <UAvatar
+        size="md"
+        class="bg-primary-200 flex items-center justify-center"
+        :alt="alt"
+        :src="user?.photoURL"
+      />
 
       <template #account="{ item }">
         <div class="text-left">
           <p>Signed in as</p>
           <p class="truncate font-medium text-gray-900 dark:text-white">
-            {{ item.label }}
+            {{ user.email }}
           </p>
         </div>
       </template>

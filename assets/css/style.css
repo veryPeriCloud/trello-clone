@@ -8,7 +8,7 @@
 }
 
 .column {
-  @apply flex-1 p-4 mr-4 rounded-lg;
+  @apply flex-1 p-4 mr-4 rounded-2xl border-t-4 border-primary shadow-md;
   @apply bg-white;
   min-width: 350px;
 }
@@ -27,5 +27,16 @@
 }
 
 .task-wrapper {
-  @apply max-w-2xl bg-white m-32 mx-auto py-4 rounded-lg;
+  @apply max-w-2xl m-32 mx-auto py-4 rounded-2xl;
+  @apply bg-white;
+}
+
+.task-card {
+  @apply mb-4 cursor-pointer rounded-2xl hover:shadow-lg hover:shadow-primary-100;
+  @apply transition-all duration-200 ease-in;
+
+}
+
+input, textarea, button {
+  border-radius: 16px !important;
 }

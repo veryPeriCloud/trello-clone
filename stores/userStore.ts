@@ -1,49 +1,51 @@
-import { v4 as uuid } from "uuid";
 import { defineStore } from "pinia";
 import {
-  addDoc,
-  arrayRemove,
-  arrayUnion,
-  collection,
   doc,
   getDoc,
-  query,
+  setDoc,
   updateDoc,
-  where,
 } from "firebase/firestore";
-import type { IColumn, ITask } from "~/types/board";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, type UserCredential } from "firebase/auth";
 
 export const useUserStore = defineStore("userStore", () => {
   const { $db, $auth } = useNuxtApp();
-  // const usersRef = doc($db, "users");
-  // const user = ref(null);
+  const userId = localStorage.getItem("firebaseUser");
 
-  async function getProfile() {
-    try {
-      const userId = localStorage.getItem("firebaseUser") ?? '';
-      const usersCollectionRef = doc($db, "users", userId);
-      const data = await getDoc(usersCollectionRef);
+  async function getProfile(): Promise<IUser> {
+    const usersCollectionRef = doc($db, "users", userId);
+    const data = await getDoc(usersCollectionRef);
 
-      return { data: data.data() };
-    } catch (error) {
-      return { error };
-    }
+    return data.data() as IUser;
   }
 
-  async function setProfile(data) {
-    try {
-      const userId = localStorage.getItem('firebaseUser') ?? '';
-      const docRef = doc($db, "users", userId);
-      await updateDoc(docRef, { ...data });
+  async function setProfile(data: IUser): Promise<void> {
+    const docRef = doc($db, "users", userId);
+    await updateDoc(docRef, { ...data });
+  }
 
-      return { data: userId };
-    } catch (error) {
-      return { error };
-    }
+  async function logIn(formData: IUser):Promise<UserCredential> {
+    return await signInWithEmailAndPassword($auth, formData.email, formData.password)
+  }
+
+  async function register(formData: IUser) {
+    const user: UserCredential = await createUserWithEmailAndPassword(
+      $auth,
+      formData.email,
+      formData.password
+    );
+    await setDoc(doc($db, "users", user.user?.uid), formData);
+    return user.user
+  }
+
+  async function logOut(): Promise<void> {
+    await signOut($auth);
   }
 
   return {
     getProfile,
     setProfile,
+    logIn,
+    register,
+    logOut,
   };
 });

@@ -17,7 +17,7 @@ onAuthStateChanged(auth, (user) => {
 <template>
   <div class="w-screen">
     <the-header />
-    <div class="overflow-auto bg-sky-200">
+    <div class="overflow-auto bg-primary-50">
       <slot />
     </div>
   </div>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import VLoader from "~/components/VLoader.vue";
 import { useBoardStore } from "~/stores/boardStore.ts";
 
 const boardStore = useBoardStore();
@@ -31,6 +32,8 @@ const closeModal = async() => {
 
 <template>
   <div class="board-wrapper">
+
+    <v-loader v-if="!isResolved" />
     <main class="board" v-if="isResolved">
       <BoardColumn
         v-for="(column, columnIndex) in boardStore.board"

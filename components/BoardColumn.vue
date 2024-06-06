@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { useBoardStore } from "~/stores/boardStore";
-import VDotsDropdown from "./VDotsDropdown.vue";
-import { colors } from "~/assets/ts/colors";
 import type { IColumn, IDropFnArgs, IPickupArgs } from "~/types/board";
 
 const props = defineProps<{
@@ -14,24 +12,24 @@ const boardStore = useBoardStore();
 const editNameState = ref(false);
 const newTaskName = ref("");
 
-const editColumnName = async(): Promise<void> => {
+const editColumnName = async (): Promise<void> => {
   await boardStore.editColumn(props.column.id);
   editNameState.value = false;
 };
 
-const deleteColumn = async(column: IColumn): Promise<void> => {
+const deleteColumn = async (column: IColumn): Promise<void> => {
   await boardStore.deleteColumn(column);
 };
 
 const goToTask = (taskId: string): void => {
-  navigateTo(`/tasks/${taskId}`)
+  navigateTo(`/tasks/${taskId}`);
 };
 
-const addTask = async(): Promise<void> => {
+const addTask = async (): Promise<void> => {
   await boardStore.addTask({
     taskName: newTaskName.value,
     columnIndex: props.columnIndex,
-    columnId: props.column.id
+    columnId: props.column.id,
   });
   newTaskName.value = "";
 };
@@ -70,12 +68,12 @@ const dropItem = async (
       fromTaskIndex,
       toTaskIndex,
       fromColumnIndex,
-      toColumnIndex
+      toColumnIndex,
     });
   } else if (type === "column") {
     await boardStore.moveColumn({
       fromColumnIndex,
-      toColumnIndex
+      toColumnIndex,
     });
   }
 };
@@ -91,16 +89,11 @@ const pickupColumn = (event: DragEvent, fromColumnIndex: number): void => {
     );
   }
 };
-
-const getRandomColor = computed(() => {
-  return colors[Math.floor(Math.random() * colors.length)];
-});
 </script>
 
 <template>
   <UContainer
-    class="column border-t-[4px]"
-    :style="{ 'border-color': `${getRandomColor}` }"
+    class="column"
     draggable="true"
     @dragstart.self="pickupColumn($event, columnIndex)"
     @dragenter.prevent
@@ -119,28 +112,37 @@ const getRandomColor = computed(() => {
         />
         <h2 v-else>{{ column.name }}</h2>
       </div>
-      <v-dots-dropdown>
-        <div class="flex flex-col gap-2">
-          <UButton
-            icon="i-heroicons-pencil-square"
-            class="mr-2 text-black"
-            @click="editNameState = !editNameState"
-            >Edit</UButton
-          >
-          <UButton
-            icon="i-heroicons-trash"
-            class="mr-2 text-red-500"
-            color="red"
-            @click="deleteColumn(column)"
-            >Delete</UButton
-          >
-        </div>
-      </v-dots-dropdown>
+
+      <UPopover :ui="{ rounded: 'rounded-2xl' }">
+        <UButton
+          variant="ghost"
+          trailing-icon="i-heroicons-ellipsis-horizontal"
+        ></UButton>
+
+        <template #panel class="rounded-2xl">
+          <div class="flex flex-col gap-2 p-2">
+            <UButton
+              icon="i-heroicons-pencil-square"
+              variant="outline"
+              @click="editNameState = !editNameState"
+              >Edit</UButton
+            >
+            <UButton
+              icon="i-heroicons-trash"
+              class=""
+              variant="outline"
+              color="red"
+              @click="deleteColumn(column)"
+              >Delete</UButton
+            >
+          </div>
+        </template>
+      </UPopover>
     </div>
     <ul>
       <li v-for="(task, taskIndex) in column.tasks" :key="task.id">
         <UCard
-          class="mb-4 cursor-pointer hover:shadow-lg"
+          class="task-card"
           @click="goToTask(task.id)"
           draggable="true"
           @dragstart="
