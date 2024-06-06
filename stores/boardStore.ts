@@ -12,8 +12,8 @@ import type { IAddTaskArg, IColumn, IMoveTaskFnArgs, IMoveColumnFnArgs, ITask } 
 export const useBoardStore = defineStore("boardStore", () => {
   const { $db } = useNuxtApp();
   const columnsDataRef = doc($db, "columns", "data");
-  const board = ref<IColumn[]>([]);
   const userId = localStorage.getItem("firebaseUser");
+  const board = ref<IColumn[]>([]);
 
   async function getAllBoardData(): Promise<IColumn[]> {
     return await getDoc(columnsDataRef).then((doc) => {
@@ -32,12 +32,16 @@ export const useBoardStore = defineStore("boardStore", () => {
   }
 
   async function updateColumn(updatedData: IColumn[]): Promise<void> {
-    const boardFromDataBase = await getAllBoardData();
-    const boardNotUser = boardFromDataBase.filter((item) => item.userId !== userId)
-    await updateDoc(columnsDataRef, {
-      data: [...boardNotUser, ...updatedData],
-    });
-    await setBoardData();
+    try {
+      const boardFromDataBase = await getAllBoardData();
+      const boardNotUser = boardFromDataBase.filter((item) => item.userId !== userId)
+      await updateDoc(columnsDataRef, {
+        data: [...boardNotUser, ...updatedData],
+      });
+      await setBoardData();
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   async function addColumn(newColumnName: string): Promise<void> {
@@ -61,32 +65,40 @@ export const useBoardStore = defineStore("boardStore", () => {
   }
 
   async function editColumn(id?: string): Promise<void> {
-    const boardFromDataBase = await getAllBoardData();
-    const editedColumn = board.value.find(item => {
-      if (item.id === id) return item
-    })
-
-    const data = boardFromDataBase.map(item => {
-      if (item.id === id) {
-        item = {...editedColumn}
-      }
-      return item
-    })
-
-    await updateDoc(columnsDataRef, {
-      data: data,
-    });
-    await setBoardData();
+    try {
+      const boardFromDataBase = await getAllBoardData();
+      const editedColumn = board.value.find(item => {
+        if (item.id === id) return item
+      })
+  
+      const data = boardFromDataBase.map(item => {
+        if (item.id === id) {
+          item = {...editedColumn}
+        }
+        return item
+      })
+  
+      await updateDoc(columnsDataRef, {
+        data: data,
+      });
+      await setBoardData();      
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   async function moveColumn({
     fromColumnIndex,
     toColumnIndex
   }: IMoveColumnFnArgs): Promise<void> {
-    const column = board.value.splice(fromColumnIndex, 1)[0];
-    board.value.splice(toColumnIndex, 0, column);
-
-    await updateColumn(board.value)
+    try {
+      const column = board.value.splice(fromColumnIndex, 1)[0];
+      board.value.splice(toColumnIndex, 0, column);
+  
+      await updateColumn(board.value)
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   const getTask = computed(() => {
@@ -112,30 +124,38 @@ export const useBoardStore = defineStore("boardStore", () => {
   }
 
   async function editTask(task: ITask): Promise<void> {
-    let columnId;
-    board.value.forEach((column) => {
-      column.tasks.map((t) => {
-        if (t.id === task.id) {
-          columnId = column.id;
-          task = { ...task };
-        }
+    try {
+      let columnId;
+      board.value.forEach((column) => {
+        column.tasks.map((t) => {
+          if (t.id === task.id) {
+            columnId = column.id;
+            task = { ...task };
+          }
+        });
       });
-    });
-    await editColumn(columnId);
+      await editColumn(columnId);
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   async function deleteTask(taskId: string): Promise<void> {
-    let columnId;
-    board.value.forEach((column) => {
-      const taskIndex = column.tasks.findIndex((task) => task.id === taskId);
+    try {
+      let columnId;
+      board.value.forEach((column) => {
+        const taskIndex = column.tasks.findIndex((task) => task.id === taskId);
 
-      if (taskIndex !== -1) {
-        columnId = column.id;
-        column.tasks.splice(taskIndex, 1);
-        return;
-      }
-    });
-    await editColumn(columnId);
+        if (taskIndex !== -1) {
+          columnId = column.id;
+          column.tasks.splice(taskIndex, 1);
+          return;
+        }
+      });
+      await editColumn(columnId);
+    } catch (error) {
+      console.log(error)
+    }    
   }
 
   async function moveTask({
@@ -144,11 +164,14 @@ export const useBoardStore = defineStore("boardStore", () => {
     fromColumnIndex,
     toColumnIndex,
   }: IMoveTaskFnArgs) {
+    try {
+      const task = board.value[fromColumnIndex].tasks.splice(fromTaskIndex, 1)[0];
+      board.value[toColumnIndex].tasks.splice(toTaskIndex, 0, task);
 
-    const task = board.value[fromColumnIndex].tasks.splice(fromTaskIndex, 1)[0];
-    board.value[toColumnIndex].tasks.splice(toTaskIndex, 0, task);
-
-    await updateColumn(board.value)
+      await updateColumn(board.value)
+    } catch (error) {
+      console.log(error)
+    }    
   }
 
   return {

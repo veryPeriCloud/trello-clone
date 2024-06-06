@@ -1,18 +1,15 @@
 <script setup lang="ts">
 import { z } from "zod";
 import type { FormSubmitEvent } from "#ui/types";
-import {
-  signInWithEmailAndPassword,
-  type Auth,
-  type UserCredential,
-} from "firebase/auth";
+import { type UserCredential } from "firebase/auth";
+import { useUserStore } from "~/stores/userStore";
 
 definePageMeta({
   layout: "auth",
   auth: false,
 });
 
-const { $auth } = useNuxtApp();
+const userStore = useUserStore();
 const toast = useToast();
 const formData = reactive({
   email: "",
@@ -21,7 +18,7 @@ const formData = reactive({
 
 onMounted(() => {
   const user = useCurrentUser();
-  
+
   if (user) {
     navigateTo("/", { replace: true });
   }
@@ -33,8 +30,9 @@ const schema = z.object({
 });
 type Schema = z.output<typeof schema>;
 
-async function onSubmit(event: FormSubmitEvent<Schema>): Promise<void> {
-  await signInWithEmailAndPassword($auth, formData.email, formData.password)
+async function onSubmit(): Promise<void> {
+  await userStore
+    .logIn(formData)
     .then((userCredential: UserCredential) => {
       const user = userCredential.user;
       toast.add({
