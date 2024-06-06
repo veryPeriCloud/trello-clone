@@ -1,6 +1,6 @@
 <template>
   <div class="flex min-h-screen">
-    <div class="w-1/2 bg-violet-900 flex flex-col items-center justify-center">
+    <div class="w-1/2 bg-indigo-700 flex flex-col items-center justify-center">
       <p class="text-xl font-medium text-yellow-500 mb-5">Trello clone app</p>
       <img src="../public/img/flame.png" alt="Human" />
     </div>
