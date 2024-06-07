@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import TheHeader from "@/components/TheHeader/TheHeader.vue";
+import TheHeader from "~/components/TheHeader/TheHeader.vue";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const auth = getAuth();
@@ -22,4 +22,3 @@ onAuthStateChanged(auth, (user) => {
     </div>
   </div>
 </template>
-

@@ -5,17 +5,17 @@ const userStore = useUserStore();
 const toast = useToast();
 
 const user = ref<IUser | null>(null);
-const isResolved = ref(true);
+const isResolved = ref(false);
 
-onMounted(async () => {
+onMounted(async() => {
   user.value = await userStore.getProfile();
   isResolved.value = true;
 });
 
-const items = [
+const items = ref([
   [
     {
-      label: "",
+      label: user.value?.email,
       slot: "account",
       disabled: true,
     },
@@ -34,12 +34,12 @@ const items = [
       url: "/login",
     },
   ],
-];
+]);
 
 const alt = computed(() =>
-  user.value?.displayName
-    ? user.value?.displayName[0].toUpperCase()
-    : user.value?.email[0].toUpperCase()
+  user?.value?.displayName
+    ? user.value.displayName[0].toUpperCase()
+    : user.value?.email ? user.value.email[0].toUpperCase() : ''
 );
 
 const clickHandler = async (url: string): Promise<void> => {
@@ -74,7 +74,7 @@ const clickHandler = async (url: string): Promise<void> => {
   <header class="h-16 flex items-center py-3 px-3 shadow-lg bg-white">
     <nuxt-link
       to="/"
-      class="flex gap-1 font-bold hover:text-primary transition-all duration-200 ease-in"
+      class="flex gap-1 font-bold text-primary hover:text-primary-600 transition-all duration-200 ease-in"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -95,7 +95,6 @@ const clickHandler = async (url: string): Promise<void> => {
           d="M12 18a3.75 3.75 0 0 0 .495-7.468 5.99 5.99 0 0 0-1.925 3.547 5.975 5.975 0 0 1-2.133-1.001A3.75 3.75 0 0 0 12 18Z"
         />
       </svg>
-
       Trello clone app
     </nuxt-link>
 
@@ -120,7 +119,7 @@ const clickHandler = async (url: string): Promise<void> => {
         <div class="text-left">
           <p>Signed in as</p>
           <p class="truncate font-medium text-gray-900 dark:text-white">
-            {{ user.email }}
+            {{ user?.email }}
           </p>
         </div>
       </template>

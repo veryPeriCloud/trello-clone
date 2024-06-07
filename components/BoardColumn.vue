@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useBoardStore } from "~/stores/boardStore";
-import type { IColumn, IDropFnArgs, IPickupArgs } from "~/types/board";
 
 const props = defineProps<{
   column: IColumn;

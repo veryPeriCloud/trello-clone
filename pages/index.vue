@@ -18,6 +18,8 @@ onMounted(async() => {
   isResolved.value = true;
 });
 
+const columns = computed(() => boardStore.board)
+
 const addColumn = async(): Promise<void> => {
   if (newColumnName.value.length === 0) return;
   await boardStore.addColumn(newColumnName.value);
@@ -36,7 +38,7 @@ const closeModal = async() => {
     <v-loader v-if="!isResolved" />
     <main class="board" v-if="isResolved">
       <BoardColumn
-        v-for="(column, columnIndex) in boardStore.board"
+        v-for="(column, columnIndex) in columns"
         :key="column.id"
         :column="column"
         :columnIndex="columnIndex"

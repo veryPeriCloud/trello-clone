@@ -10,8 +10,9 @@ import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, ty
 export const useUserStore = defineStore("userStore", () => {
   const { $db, $auth } = useNuxtApp();
   const userId = localStorage.getItem("firebaseUser");
-
+  
   async function getProfile(): Promise<IUser> {
+    const userId = localStorage.getItem("firebaseUser");
     const usersCollectionRef = doc($db, "users", userId);
     const data = await getDoc(usersCollectionRef);
 
@@ -19,8 +20,8 @@ export const useUserStore = defineStore("userStore", () => {
   }
 
   async function setProfile(data: IUser): Promise<void> {
-    const docRef = doc($db, "users", userId);
-    await updateDoc(docRef, { ...data });
+    const usersCollectionRef = doc($db, "users", userId);
+    await updateDoc(usersCollectionRef, { ...data });
   }
 
   async function logIn(formData: IUser):Promise<UserCredential> {

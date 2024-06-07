@@ -1,4 +1,4 @@
-export interface ITask {
+interface ITask {
   id: string;
   name: string;
   description: string;

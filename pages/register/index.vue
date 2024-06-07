@@ -60,6 +60,11 @@ async function onSubmit(event: FormSubmitEvent<Schema>): Promise<void> {
 
 <template>
   <div class="flex flex-col items-center justify-center w-1/2">
+    <div class="flex lg:hidden flex-col items-center justify-center mb-5">
+      <p class="text-xl font-medium text-yellow-500 mb-2">Trello clone app</p>
+      <img src="../../public/img/flame.png" alt="Human" class="h-[80px]" />
+    </div>
+
     <h1 class="text-3xl font-bold mb-5">Sign Up</h1>
     <UForm
       :schema="schema"
