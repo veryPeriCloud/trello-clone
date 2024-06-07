@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { z } from "zod";
-import type { FormSubmitEvent } from "#ui/types";
 import { type UserCredential } from "firebase/auth";
 import { useUserStore } from "~/stores/userStore";
 
@@ -42,7 +41,9 @@ async function onSubmit(): Promise<void> {
         timeout: 2000,
         color: "green",
       });
-      if (user) navigateTo("/", { replace: true });
+      if (user) {
+        navigateTo("/", { replace: true });
+      }
     })
     .catch((error) => {
       const errorCode = error.code;
@@ -59,7 +60,12 @@ async function onSubmit(): Promise<void> {
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center w-1/2">
+  <div class="flex flex-col items-center justify-center w-full max-w-[320px] sm:w-1/2">
+    <div class="flex lg:hidden flex-col items-center justify-center mb-5">
+      <p class="text-xl font-medium text-yellow-500 mb-2">Trello clone app</p>
+      <img src="../../public/img/flame.png" alt="Human" class="h-[80px]" />
+    </div>
+
     <h1 class="text-3xl font-bold mb-5">Login</h1>
     <UForm
       :schema="schema"

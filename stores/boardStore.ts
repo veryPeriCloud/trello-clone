@@ -22,6 +22,7 @@ export const useBoardStore = defineStore("boardStore", () => {
   }
 
   async function getBoardData(): Promise<IColumn[]> {
+    const userId = localStorage.getItem("firebaseUser");
     return await getDoc(columnsDataRef).then((doc) => {
       return doc.data()?.data.filter((item: IColumn) => item.userId === userId);
     });
@@ -177,6 +178,7 @@ export const useBoardStore = defineStore("boardStore", () => {
   return {
     board,
     setBoardData,
+    getBoardData,
     addColumn,
     deleteColumn,
     editColumn,
