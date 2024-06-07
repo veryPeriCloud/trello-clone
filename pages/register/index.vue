@@ -86,6 +86,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>): Promise<void> {
           type="password"
           size="md"
           icon="i-heroicons-lock-closed"
+          autocomplete="current-password"
         />
       </UFormGroup>
 

@@ -17,7 +17,6 @@ const formData = reactive({
 
 onMounted(() => {
   const user = useCurrentUser();
-
   if (user) {
     navigateTo("/", { replace: true });
   }
@@ -87,6 +86,7 @@ async function onSubmit(): Promise<void> {
           type="password"
           size="md"
           icon="i-heroicons-lock-closed"
+          autocomplete="current-password"
         />
       </UFormGroup>
 
