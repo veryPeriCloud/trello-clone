@@ -96,7 +96,7 @@ async function onSubmit(): Promise<void> {
     </UForm>
     <div class="mt-5">
       Don't have an account then
-      <nuxt-link to="/register" class="text-primary font-medium"
+      <nuxt-link :to="'/register'" class="text-primary font-medium"
         >Sign-up</nuxt-link
       >
     </div>
