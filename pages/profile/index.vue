@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { z } from "zod";
 import VLoader from "~/components/VLoader.vue";
 import { useUserStore } from "~/stores/userStore";
 
@@ -13,6 +14,12 @@ onMounted(async () => {
   user.value = await userStore.getProfile();
   isResolved.value = true;
 });
+
+const schema = z.object({
+  displayName: z.string().min(2, "Must be at least 2 characters"),
+});
+
+type Schema = z.output<typeof schema>;
 
 const letter = computed(() => {
   if (user.value) {
@@ -45,8 +52,8 @@ const removePhoto = (): void => {
   user.value.photoURL = null;
 };
 
-const saveChanges = async (): Promise<void> => {
-  if (user) {
+const onSubmit = async (): Promise<void> => {
+  if (user.value) {
     await userStore
       .setProfile(user.value)
       .then((res) => {
@@ -113,7 +120,7 @@ const cancelChanges = async (): Promise<void> => {
             </UButton>
           </div>
         </div>
-        <form class="flex flex-col mt-8" @submit.prevent="saveChanges">
+        <UForm :schema="schema" :state="user" class="flex flex-col mt-8" @submit="onSubmit">
           <div class="flex justify-center relative mb-5">
             <input
               type="file"
@@ -123,15 +130,15 @@ const cancelChanges = async (): Promise<void> => {
             />
             <UButton>Upload your photo</UButton>
           </div>
-          <div  class="profile-field">
-            <div class="w-1/3">E-mail:</div>
+          <UFormGroup name="email" label="E-mail" class="profile-field">
+            <!-- <div class="mb-2">E-mail:</div> -->
             <UInput class="w-full" disabled size="lg" v-model="user.email" />
-          </div>
+          </UFormGroup>
 
-          <div  class="profile-field border-b-2">
-            <label class="w-1/3">Profile name</label>
+          <UFormGroup name="displayName" label="Profile name" class="profile-field">
+            <!-- <label class="mb-2">Profile name</label> -->
             <UInput class="w-full" size="lg" v-model="user.displayName" />
-          </div>
+          </UFormGroup>
 
           <div class="flex gap-5 mt-5 ml-auto">
             <UButton size="md" variant="ghost" @click.prevent="cancelChanges"
@@ -139,7 +146,7 @@ const cancelChanges = async (): Promise<void> => {
             >
             <UButton size="md" type="submit"> Save changes</UButton>
           </div>
-        </form>
+        </UForm>
       </div>
     </UContainer>
   </div>
@@ -163,7 +170,7 @@ const cancelChanges = async (): Promise<void> => {
 }
 
 .profile-field {
-  @apply border-t-2 border-gray-100 py-5 w-full flex gap-3 sm:gap-5 flex-col sm:flex-row;
+  @apply border-t-2 border-gray-100 py-5 w-full;
 }
 
 .profile-avatar {

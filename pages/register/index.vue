@@ -17,7 +17,7 @@ definePageMeta({
 
 onMounted(() => {
   const user = useCurrentUser();
-  if (user) {
+  if (user.value) {
     navigateTo("/", { replace: true });
   }
 });
